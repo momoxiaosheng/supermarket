@@ -1,0 +1,95 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /api
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/supermarket2?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: ""
+      database: 0
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  # 加这一行！激活dev环境，Spring就能读到你的华为云配置了
+
+
+
+
+huawei:
+  iot:
+    mqtt:
+      hostUrl: eb4a5937ac.st1.iotda-device.cn-north-4.myhuaweicloud.com
+      port: 8883
+      username: 69e60e4b7f2e6c302f68f4b6_test
+      password: ee3e583b84b06bed959a8a34799a695017448e8a033c43096f15fb50d191cd15
+      clientId: 69e60e4b7f2e6c302f68f4b6_test_0_0_2026042116
+      subscribeTopic: $oc/devices/69e60e4b7f2e6c302f68f4b6_test/sys/messages/down
+      reportTopic: $oc/devices/69e60e4b7f2e6c302f68f4b6_test/sys/properties/report
+    amqp:
+      url: amqps://eb4a5937ac.st1.iotda-app.cn-north-4.myhuaweicloud.com:5671
+      accessKey: IDs5vBY9
+      accessCode: 0oQGHasuaWzdmuXr00ol0HsQYyeJdgr9
+      queueName: cart_device_data_queue
+
+# MyBatis-Plus
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.example.supermarket2.entity
+  type-handlers-package: com.example.supermarket2.handler
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    call-setters-on-nulls: true
+    cache-enabled: false
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+wechat:
+  app-id: your-wechat-app-id
+  app-secret: your-wechat-app-secret
+
+knife4j:
+  enable: true
+  setting:
+    enable-swagger-models: true
+    language: zh_CN
+    enable-request-cache: false
+  openapi:
+    title: 超市导航系统接口文档
+    description: 超市导航与智能购物车后端API
+    version: 1.0.0
+    contact:
+      name: 开发者
+
+logging:
+  level:
+    root: INFO
+    com.example.supermarket2: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{50} - %msg%n"
+
+file:
+  upload:
+    image-path: .\static\images
+
+device:
+  fixed:
+    userId: 1
+    cartId: 3

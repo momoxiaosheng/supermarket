@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.supermarket2.mapper.CategoryMapper">
+
+    <!-- 查询根分类（parent_id=0且状态正常） -->
+    <select id="selectRootCategories" resultType="com.example.supermarket2.entity.Category">
+        SELECT * FROM category
+        WHERE status = 1
+          AND parent_id = 0
+        ORDER BY sort_order ASC
+    </select>
+
+</mapper>

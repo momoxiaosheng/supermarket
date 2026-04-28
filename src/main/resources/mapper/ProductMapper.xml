@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.supermarket2.mapper.ProductMapper">
+
+    <!-- 查询推荐商品（按创建时间降序，限制数量） -->
+    <select id="selectRecommendProducts" parameterType="int" resultType="com.example.supermarket2.entity.Product">
+        SELECT * FROM product
+        WHERE status = 1
+        ORDER BY create_time DESC
+            LIMIT #{limit}
+    </select>
+
+    <!-- 查询所有商品（状态正常，按创建时间降序） -->
+    <select id="selectAllProducts" resultType="com.example.supermarket2.entity.Product">
+        SELECT * FROM product
+        WHERE status = 1
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据关键词搜索商品（名称或描述包含关键词） -->
+    <select id="searchProducts" parameterType="java.lang.String" resultType="com.example.supermarket2.entity.Product">
+        SELECT * FROM product
+        WHERE status = 1
+          AND (name LIKE CONCAT('%', #{keyword}, '%')
+            OR description LIKE CONCAT('%', #{keyword}, '%'))
+    </select>
+
+    <!-- 根据ID查询商品（状态正常） -->
+    <select id="selectProductById" parameterType="java.lang.Long" resultType="com.example.supermarket2.entity.Product">
+        SELECT * FROM product
+        WHERE status = 1
+          AND id = #{id}
+    </select>
+
+</mapper>

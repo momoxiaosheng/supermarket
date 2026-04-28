@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.supermarket2.mapper.BannerMapper">
+
+    <!-- 查询激活状态的轮播图，按排序号升序 -->
+    <select id="selectActiveBanners" resultType="com.example.supermarket2.entity.Banner">
+        SELECT * FROM banner
+        WHERE status = 1
+        ORDER BY sort_order ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.supermarket2.mapper.CartMapper">
+
+    <!-- 根据用户ID查询购物车项 -->
+    <select id="selectByUserId" parameterType="java.lang.Long" resultType="com.example.supermarket2.entity.Cart">
+        SELECT * FROM cart
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 根据用户ID统计购物车项数量 -->
+    <select id="countByUserId" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM cart
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>
