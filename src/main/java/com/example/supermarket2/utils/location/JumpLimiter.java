@@ -59,8 +59,8 @@ public class JumpLimiter {
             double limitedY = last.getY() + dy * ratio;
             result = new Position(limitedX, limitedY,
                     rawPos.getAlgorithm() + "_jump_limited", rawPos.getQuality());
-            log.debug("JumpLimiter: userId={}, 跳变距离={:.2f}m > 阈值={:.2f}m, 已限幅",
-                    userId, dist, maxJumpDistance);
+            log.debug("JumpLimiter: userId={}, 跳变距离={} m > 阈值={} m, 已限幅",
+                    userId, String.format("%.2f", dist), String.format("%.2f", maxJumpDistance));
         } else {
             result = rawPos;
         }

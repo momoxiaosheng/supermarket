@@ -54,7 +54,7 @@ public class EmaFilter {
                 pos.getAlgorithm() + "_ema", pos.getQuality());
         smoothedPositions.put(userId, result);
 
-        log.debug("EmaFilter: userId={}, alpha={}, EMA=({}，{})",
+        log.debug("EmaFilter: userId={}, alpha={}, EMA=({}, {})",
                 userId, alpha, smoothedX, smoothedY);
         return result;
     }

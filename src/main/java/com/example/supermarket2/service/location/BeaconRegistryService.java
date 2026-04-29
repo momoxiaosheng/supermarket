@@ -79,7 +79,7 @@ public class BeaconRegistryService {
         // 示例（伪代码）：
         // List<BeaconLocation> beacons = beaconLocationMapper.selectAll();
         // beacons.forEach(this::registerBeacon);
-        log.info("loadBeaconsFromExternalSource: 当前使用默认信标列表（共{}个）", registry.size());
+        log.info("loadBeaconsFromExternalSource: 占位实现，当前使用默认内置信标列表（共{}个）。如需接入数据库，请实现此方法。", registry.size());
     }
 
     /**

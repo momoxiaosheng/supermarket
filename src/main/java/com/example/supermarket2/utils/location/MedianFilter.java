@@ -55,12 +55,14 @@ public class MedianFilter {
         }
 
         // 分别对 X、Y 取中位数
-        double medianX = median(window.stream().map(Position::getX).sorted().toList());
-        double medianY = median(window.stream().map(Position::getY).sorted().toList());
+        List<Double> sortedX = window.stream().map(Position::getX).sorted().toList();
+        List<Double> sortedY = window.stream().map(Position::getY).sorted().toList();
+        double medianX = median(sortedX);
+        double medianY = median(sortedY);
 
         Position result = new Position(medianX, medianY,
                 pos.getAlgorithm() + "_median", pos.getQuality());
-        log.debug("MedianFilter: userId={}, 窗口={}, 中值=({}，{})",
+        log.debug("MedianFilter: userId={}, 窗口={}, 中值=({}, {})",
                 userId, window.size(), medianX, medianY);
         return result;
     }

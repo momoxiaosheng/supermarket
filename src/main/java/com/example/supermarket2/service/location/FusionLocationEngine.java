@@ -51,6 +51,12 @@ public class FusionLocationEngine {
     private final Map<String, Position> userLastPositions = new ConcurrentHashMap<>();
     private final int MAX_HISTORY_SIZE = 10;
 
+    /** 默认距离估计值（当 RSSI 模型无法给出有效距离时使用，单位：米） */
+    private static final double DEFAULT_DISTANCE_METERS = 5.0;
+
+    /** WLS 矩阵奇异性判断阈值 */
+    private static final double MATRIX_SINGULARITY_THRESHOLD = 1e-10;
+
     /**
      * 懒初始化滤波器（使用 BeaconConfig 中的参数）
      */
@@ -220,7 +226,7 @@ public class FusionLocationEngine {
             bx[i] = loc.getX();
             by[i] = loc.getY();
             Double d = loc.calculateDistance(bd.getRssi());
-            dist[i] = (d != null && d > 0) ? d : 5.0;
+            dist[i] = (d != null && d > 0) ? d : DEFAULT_DISTANCE_METERS;
 
             // 权重 = 1 / d²
             weight[i] = 1.0 / (dist[i] * dist[i]);
@@ -263,7 +269,7 @@ public class FusionLocationEngine {
 
         // 求 2×2 逆矩阵
         double det = AtWA[0][0] * AtWA[1][1] - AtWA[0][1] * AtWA[1][0];
-        if (Math.abs(det) < 1e-10) {
+        if (Math.abs(det) < MATRIX_SINGULARITY_THRESHOLD) {
             log.warn("WLS: 矩阵奇异，无法求解");
             return null;
         }
@@ -293,7 +299,7 @@ public class FusionLocationEngine {
             BeaconLocation loc = beaconRegistry.findBeaconLocation(bd.getUuid());
             if (loc == null) continue;
             Double d = loc.calculateDistance(bd.getRssi());
-            double distance = (d != null && d > 0) ? d : 5.0;
+            double distance = (d != null && d > 0) ? d : DEFAULT_DISTANCE_METERS;
             double w = 1.0 / (distance * distance);
             if (w < weightThresh) {
                 return true;
@@ -314,7 +320,7 @@ public class FusionLocationEngine {
             BeaconLocation loc = beaconRegistry.findBeaconLocation(bd.getUuid());
             if (loc == null) continue;
             Double d = loc.calculateDistance(bd.getRssi());
-            double distance = (d != null && d > 0) ? d : 5.0;
+            double distance = (d != null && d > 0) ? d : DEFAULT_DISTANCE_METERS;
             if (distance > maxDist) {
                 maxDist = distance;
                 worstIdx = i;
