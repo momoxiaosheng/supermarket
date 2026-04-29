@@ -33,7 +33,11 @@ public class SignalQuality {
         Level level;
         double confidence;
 
-        if (beaconCount >= 3 && avgRSSI > -65 && stability > 0.7) {
+        if (beaconCount >= 4 && avgRSSI > -70 && stability > 0.6) {
+            // 4个以上信标时，放宽RSSI和稳定性门槛，以支持WLS多点定位
+            level = Level.HIGH;
+            confidence = 0.85;
+        } else if (beaconCount >= 3 && avgRSSI > -65 && stability > 0.7) {
             level = Level.HIGH;
             confidence = 0.8;
         } else if (beaconCount >= 2 && avgRSSI > -70 && stability > 0.5) {
@@ -51,10 +55,10 @@ public class SignalQuality {
     }
 
     /**
-     * 检查是否适合三角定位
+     * 检查是否适合三角定位（WLS多点定位），要求至少4个有效信标
      */
     public boolean isSuitableForTrilateration() {
-        return level == Level.HIGH && validBeacons >= 3;
+        return level == Level.HIGH && validBeacons >= 4;
     }
 
     /**

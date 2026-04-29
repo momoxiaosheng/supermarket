@@ -40,6 +40,17 @@ public class BeaconConfig {
     // 权重配置
     private Double rssiWeightExponent = 0.2;        // RSSI权重指数
 
+    // 滤波链路配置
+    private Double maxJumpDistance = 5.0;           // 限幅滤波：最大允许跳变距离（米）
+    private Integer medianWindowSize = 5;           // 中值滤波：窗口大小（帧数）
+    private Double emaAlpha = 0.3;                  // EMA滤波：平滑因子（0~1，越小越平滑）
+
+    // WLS多点定位配置
+    private Integer wlsMinBeacons = 4;              // WLS定位最少信标数
+    private Integer wlsMaxBeacons = 5;              // WLS定位最多信标数
+    private Double wlsResidualThreshold = 2.0;      // 残差阈值：超过则降级到4点定位
+    private Double weightThreshold = 0.1;           // 信标权重阈值：低于此值视为弱信标
+
     /**
      * 验证配置参数的有效性
      */
