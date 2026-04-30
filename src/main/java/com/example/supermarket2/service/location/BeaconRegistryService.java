@@ -2,9 +2,12 @@ package com.example.supermarket2.service.location;
 
 import com.example.supermarket2.dto.location.BeaconData;
 import com.example.supermarket2.entity.location.BeaconLocation;
+import com.example.supermarket2.mapper.location.BeaconLocationMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,6 +47,9 @@ public class BeaconRegistryService {
      */
     private final Map<String, BeaconLocation> registry = new ConcurrentHashMap<>();
 
+    @Autowired(required = false)
+    private BeaconLocationMapper beaconLocationMapper;
+
     public BeaconRegistryService() {
         // 将默认列表写入注册表
         for (BeaconLocation bl : DEFAULT_BEACONS) {
@@ -68,18 +74,35 @@ public class BeaconRegistryService {
     }
 
     /**
-     * 占位加载方法：从外部数据源（数据库/配置中心）批量加载信标。
-     * 当前为 stub，不做任何实际加载，已有默认列表保持不变。
+     * 应用启动后自动从数据库加载信标。
+     * 若数据库返回空列表，保留构造时写入的默认兜底信标。
+     */
+    @PostConstruct
+    public void init() {
+        loadBeaconsFromExternalSource();
+    }
+
+    /**
+     * 从数据库的 beacon_location 表加载已启用的信标，
+     * 并通过 {@link #registerBeacon} 注册到运行时注册表。
+     * 若数据库未返回任何数据，已有的默认兜底信标保持不变。
      * <p>
-     * 接入真实数据源时，在此处替换实现（如查询 beacon_location 表）。
+     * 注意：此方法通过 {@link #init()} 在应用启动时自动调用一次；
+     * 若需重新加载，请在调用前手动清空注册表以避免残留脏数据。
      * </p>
      */
     public void loadBeaconsFromExternalSource() {
-        // TODO: 接入数据库或配置中心加载信标列表
-        // 示例（伪代码）：
-        // List<BeaconLocation> beacons = beaconLocationMapper.selectAll();
-        // beacons.forEach(this::registerBeacon);
-        log.info("loadBeaconsFromExternalSource: 占位实现，当前使用默认内置信标列表（共{}个）。如需接入数据库，请实现此方法。", registry.size());
+        if (beaconLocationMapper == null) {
+            log.info("loadBeaconsFromExternalSource: BeaconLocationMapper 未注入，跳过数据库加载，保留默认信标（共{}个）。", registry.size());
+            return;
+        }
+        List<BeaconLocation> beacons = beaconLocationMapper.selectAllEnabled();
+        if (beacons == null || beacons.isEmpty()) {
+            log.info("loadBeaconsFromExternalSource: 数据库未返回信标数据，保留默认兜底信标（共{}个）。", registry.size());
+            return;
+        }
+        beacons.forEach(this::registerBeacon);
+        log.info("loadBeaconsFromExternalSource: 从数据库加载信标完成，共{}个。", beacons.size());
     }
 
     /**
