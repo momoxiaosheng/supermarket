@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 @Configuration
 @ConditionalOnProperty(prefix = "huawei.iot.mqtt", name = "enabled", havingValue = "true")
@@ -45,14 +46,19 @@ public class MqttConfig {
     private MqttClient mqttClient;
 
     @Bean
-    public MqttClient mqttClient() throws MqttException {
+    public MqttClient mqttClient() {
+        validateRequiredSettings();
         logger.info("MQTT连接参数 - Username: {}, ClientId: {}", username, clientId);
 
         // 华为云IoT MQTT 连接地址（ssl:// 前缀保持不变，符合MQTTS协议要求）
         String broker = "ssl://" + mqttHostUrl + ":" + port;
         logger.info("连接MQTT服务器: {}", broker);
 
-        mqttClient = new MqttClient(broker, clientId, new MemoryPersistence());
+        try {
+            mqttClient = new MqttClient(broker, clientId, new MemoryPersistence());
+        } catch (MqttException e) {
+            throw new IllegalStateException("MQTT客户端初始化失败，请检查连接配置。", e);
+        }
 
         MqttConnectOptions connOpts = new MqttConnectOptions();
         connOpts.setUserName(username);
@@ -82,6 +88,24 @@ public class MqttConfig {
         }
 
         return mqttClient;
+    }
+
+    private void validateRequiredSettings() {
+        if (!StringUtils.hasText(mqttHostUrl)) {
+            throw new IllegalStateException("启用MQTT时必须配置 huawei.iot.mqtt.hostUrl");
+        }
+        if (!StringUtils.hasText(username)) {
+            throw new IllegalStateException("启用MQTT时必须配置 huawei.iot.mqtt.username");
+        }
+        if (!StringUtils.hasText(password)) {
+            throw new IllegalStateException("启用MQTT时必须配置 huawei.iot.mqtt.password");
+        }
+        if (!StringUtils.hasText(clientId)) {
+            throw new IllegalStateException("启用MQTT时必须配置 huawei.iot.mqtt.clientId");
+        }
+        if (!StringUtils.hasText(subscribeTopic)) {
+            throw new IllegalStateException("启用MQTT时必须配置 huawei.iot.mqtt.subscribeTopic");
+        }
     }
 
     @PreDestroy
