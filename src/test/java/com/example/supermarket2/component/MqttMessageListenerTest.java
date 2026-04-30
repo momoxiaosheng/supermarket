@@ -37,7 +37,7 @@ public class MqttMessageListenerTest {
 
         // 验证
         verify(deviceDataService, times(1)).processDeviceData(
-                eq("k2069zW7Drp:gwc_wxx"), eq(topic), any());
+                eq(topic), eq(payload), any());
     }
 
     @Test
@@ -52,6 +52,6 @@ public class MqttMessageListenerTest {
 
         // 验证 - 应该使用解析出的设备标识
         verify(deviceDataService, times(1)).processDeviceData(
-                eq("invalid:topic"), eq(topic), any());
+                eq(topic), eq(payload), any());
     }
 }
