@@ -45,49 +45,43 @@ public class MqttConfig {
     private MqttClient mqttClient;
 
     @Bean
-    public MqttClient mqttClient() {
+    public MqttClient mqttClient() throws MqttException {
+        logger.info("MQTT连接参数 - Username: {}, ClientId: {}", username, clientId);
+
+        // 华为云IoT MQTT 连接地址（ssl:// 前缀保持不变，符合MQTTS协议要求）
+        String broker = "ssl://" + mqttHostUrl + ":" + port;
+        logger.info("连接MQTT服务器: {}", broker);
+
+        mqttClient = new MqttClient(broker, clientId, new MemoryPersistence());
+
+        MqttConnectOptions connOpts = new MqttConnectOptions();
+        connOpts.setUserName(username);
+        connOpts.setPassword(password.toCharArray());
+        connOpts.setCleanSession(true);
+        connOpts.setConnectionTimeout(30);
+        connOpts.setKeepAliveInterval(60);
+        connOpts.setAutomaticReconnect(true);
+        connOpts.setHttpsHostnameVerificationEnabled(false);
+
+        // 1. 先连接（连接失败只记录警告，不阻止应用启动）
         try {
-            logger.info("MQTT连接参数 - Username: {}, ClientId: {}", username, clientId);
-
-            // 华为云IoT MQTT 连接地址（ssl:// 前缀保持不变，符合MQTTS协议要求）
-            String broker = "ssl://" + mqttHostUrl + ":" + port;
-            logger.info("连接MQTT服务器: {}", broker);
-
-            mqttClient = new MqttClient(broker, clientId, new MemoryPersistence());
-
-            MqttConnectOptions connOpts = new MqttConnectOptions();
-            connOpts.setUserName(username);
-            connOpts.setPassword(password.toCharArray());
-            connOpts.setCleanSession(true);
-            connOpts.setConnectionTimeout(30);
-            connOpts.setKeepAliveInterval(60);
-            connOpts.setAutomaticReconnect(true);
-            connOpts.setHttpsHostnameVerificationEnabled(false);
-
-            // 1. 先连接（连接失败只记录警告，不阻止应用启动）
-            try {
-                mqttClient.connect(connOpts);
-                logger.info("成功连接到华为云IoT MQTT服务器");
-            } catch (MqttException e) {
-                logger.warn("MQTT连接失败（将在后台自动重连），应用正常启动。原因: {}", e.getMessage());
-                return mqttClient;
-            }
-
-            // 2. 后订阅 (单独 try-catch，订阅失败不影响项目启动)
-            try {
-                mqttClient.subscribe(subscribeTopic, 0, mqttMessageListener);
-                logger.info("已订阅主题: {}", subscribeTopic);
-            } catch (MqttException e) {
-                logger.error("订阅Topic失败，请检查Topic配置: topic={}", subscribeTopic, e);
-                logger.warn("项目将继续启动，但MQTT消息监听暂不可用。");
-            }
-
-            return mqttClient;
-
+            mqttClient.connect(connOpts);
+            logger.info("成功连接到华为云IoT MQTT服务器");
         } catch (MqttException e) {
-            logger.warn("MQTT客户端初始化异常，IoT功能将不可用: {}", e.getMessage());
-            return null;
+            logger.warn("MQTT连接失败（将在后台自动重连），应用正常启动。原因: {}", e.getMessage());
+            return mqttClient;
         }
+
+        // 2. 后订阅 (单独 try-catch，订阅失败不影响项目启动)
+        try {
+            mqttClient.subscribe(subscribeTopic, 0, mqttMessageListener);
+            logger.info("已订阅主题: {}", subscribeTopic);
+        } catch (MqttException e) {
+            logger.error("订阅Topic失败，请检查Topic配置: topic={}", subscribeTopic, e);
+            logger.warn("项目将继续启动，但MQTT消息监听暂不可用。");
+        }
+
+        return mqttClient;
     }
 
     @PreDestroy
