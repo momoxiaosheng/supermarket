@@ -6,6 +6,12 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.elasticsearch.ReactiveElasticsearchRepositoriesAutoConfiguration
   profiles:
     active: dev
   datasource:
@@ -87,7 +93,7 @@ logging:
 
 file:
   upload:
-    image-path: .\static\images
+    image-path: ./uploads/images
 
 device:
   fixed:

@@ -62,13 +62,18 @@ public class MqttConfig {
             connOpts.setAutomaticReconnect(true);
             connOpts.setHttpsHostnameVerificationEnabled(false);
 
-            // 1. 先连接
-            mqttClient.connect(connOpts);
-            logger.info("成功连接到华为云IoT MQTT服务器");
+            // 1. 先连接（连接失败只记录警告，不阻止应用启动）
+            try {
+                mqttClient.connect(connOpts);
+                logger.info("成功连接到华为云IoT MQTT服务器");
+            } catch (MqttException e) {
+                logger.warn("MQTT连接失败（将在后台自动重连），应用正常启动。原因: {}", e.getMessage());
+                return mqttClient;
+            }
 
             // 2. 后订阅 (单独 try-catch，订阅失败不影响项目启动)
             try {
-                mqttClient.subscribe(subscribeTopic, 0, mqttMessageListener); // 修改点4：变量名从 topic 改为 subscribeTopic
+                mqttClient.subscribe(subscribeTopic, 0, mqttMessageListener);
                 logger.info("已订阅主题: {}", subscribeTopic);
             } catch (MqttException e) {
                 logger.error("订阅Topic失败，请检查Topic配置: topic={}", subscribeTopic, e);
@@ -78,21 +83,21 @@ public class MqttConfig {
             return mqttClient;
 
         } catch (MqttException e) {
-            logger.error("MQTT客户端初始化失败: {}", e.getMessage(), e);
-            throw new RuntimeException("MQTT客户端初始化失败", e);
+            logger.warn("MQTT客户端初始化异常，IoT功能将不可用: {}", e.getMessage());
+            return null;
         }
     }
 
     @PreDestroy
     public void destroy() {
-        if (mqttClient != null && mqttClient.isConnected()) {
-            try {
+        try {
+            if (mqttClient != null && mqttClient.isConnected()) {
                 mqttClient.disconnect();
                 mqttClient.close();
                 logger.info("MQTT客户端已断开连接");
-            } catch (MqttException e) {
-                logger.error("断开MQTT连接时出错: {}", e.getMessage(), e);
             }
+        } catch (MqttException e) {
+            logger.error("断开MQTT连接时出错: {}", e.getMessage(), e);
         }
     }
 }
