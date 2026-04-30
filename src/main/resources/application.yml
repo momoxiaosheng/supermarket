@@ -93,3 +93,13 @@ device:
   fixed:
     userId: 1
     cartId: 3
+
+beacon:
+  config:
+    maxJumpDistance: 5.0
+    medianWindowSize: 5
+    emaAlpha: 0.3
+    wlsMinBeacons: 4
+    wlsMaxBeacons: 5
+    wlsResidualThreshold: 2.0
+    weightThreshold: 0.1
