@@ -1,6 +1,5 @@
 package com.example.supermarket2.config;
 
-import com.example.supermarket2.entity.location.BeaconConfig;
 import com.example.supermarket2.utils.location.KalmanFilter2D;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -42,45 +41,6 @@ public class LocationConfig {
                 algorithm.getKalmanProcessNoise(),
                 algorithm.getKalmanMeasurementNoise()
         );
-    }
-
-    /**
-     * 创建信标配置Bean
-     */
-    @Bean
-    public BeaconConfig beaconConfig() {
-        BeaconConfig config = new BeaconConfig();
-
-        // 设置RSSI配置
-        config.setRssi0(signal.getRssi0());
-        config.setAttenuationFactor(signal.getAttenuationFactor());
-        config.setRssiMin(signal.getRssiMin());
-        config.setRssiMax(signal.getRssiMax());
-
-        // 设置滤波配置
-        config.setHistorySize(signal.getHistorySize());
-        config.setOutlierThreshold(signal.getOutlierThreshold());
-        config.setStabilityThreshold(signal.getStabilityThreshold());
-
-        // 设置定位算法配置
-        config.setKalmanProcessNoise(algorithm.getKalmanProcessNoise());
-        config.setKalmanMeasurementNoise(algorithm.getKalmanMeasurementNoise());
-        config.setMaxMovementDistance(algorithm.getMaxMovementDistance());
-
-        // 设置质量评估配置
-        config.setHighQualityRssiThreshold(quality.getHighQualityRssiThreshold());
-        config.setMediumQualityRssiThreshold(quality.getMediumQualityRssiThreshold());
-        config.setLowQualityRssiThreshold(quality.getLowQualityRssiThreshold());
-
-        // 设置权重配置
-        config.setRssiWeightExponent(algorithm.getRssiWeightExponent());
-
-        if (!config.isValid()) {
-            log.warn("信标配置参数验证失败，使用默认值");
-        }
-
-        log.info("信标配置初始化完成");
-        return config;
     }
 
     /**

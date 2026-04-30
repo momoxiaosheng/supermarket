@@ -10,14 +10,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.jms.*;
 import javax.net.ssl.SSLContext;
 import java.nio.charset.StandardCharsets;
 
 @Component
+@ConditionalOnProperty(prefix = "huawei.iot.amqp", name = "enabled", havingValue = "true")
 public class HuaweiAmqpListener implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(HuaweiAmqpListener.class);
@@ -36,6 +39,7 @@ public class HuaweiAmqpListener implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        validateRequiredSettings();
         try {
             Thread.sleep(5000);
         } catch (InterruptedException ignored) {}
@@ -109,6 +113,21 @@ public class HuaweiAmqpListener implements CommandLineRunner {
                 cause = cause.getCause();
                 depth++;
             }
+        }
+    }
+
+    private void validateRequiredSettings() {
+        if (!StringUtils.hasText(amqpUrl)) {
+            throw new java.lang.IllegalStateException("启用AMQP时必须配置 huawei.iot.amqp.url");
+        }
+        if (!StringUtils.hasText(accessKey)) {
+            throw new java.lang.IllegalStateException("启用AMQP时必须配置 huawei.iot.amqp.accessKey");
+        }
+        if (!StringUtils.hasText(accessCode)) {
+            throw new java.lang.IllegalStateException("启用AMQP时必须配置 huawei.iot.amqp.accessCode");
+        }
+        if (!StringUtils.hasText(queueName)) {
+            throw new java.lang.IllegalStateException("启用AMQP时必须配置 huawei.iot.amqp.queueName");
         }
     }
 }

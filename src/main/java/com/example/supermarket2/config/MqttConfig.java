@@ -10,10 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 @Configuration
+@ConditionalOnProperty(prefix = "huawei.iot.mqtt", name = "enabled", havingValue = "true")
 public class MqttConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(MqttConfig.class);
@@ -44,55 +47,77 @@ public class MqttConfig {
 
     @Bean
     public MqttClient mqttClient() {
+        validateRequiredSettings();
+        logger.info("MQTT连接参数 - Username: {}, ClientId: {}", username, clientId);
+
+        // 华为云IoT MQTT 连接地址（ssl:// 前缀保持不变，符合MQTTS协议要求）
+        String broker = "ssl://" + mqttHostUrl + ":" + port;
+        logger.info("连接MQTT服务器: {}", broker);
+
         try {
-            logger.info("MQTT连接参数 - Username: {}, ClientId: {}", username, clientId);
-
-            // 华为云IoT MQTT 连接地址（ssl:// 前缀保持不变，符合MQTTS协议要求）
-            String broker = "ssl://" + mqttHostUrl + ":" + port;
-            logger.info("连接MQTT服务器: {}", broker);
-
             mqttClient = new MqttClient(broker, clientId, new MemoryPersistence());
+        } catch (MqttException e) {
+            throw new IllegalStateException("MQTT客户端初始化失败，请检查连接配置。", e);
+        }
 
-            MqttConnectOptions connOpts = new MqttConnectOptions();
-            connOpts.setUserName(username);
-            connOpts.setPassword(password.toCharArray());
-            connOpts.setCleanSession(true);
-            connOpts.setConnectionTimeout(30);
-            connOpts.setKeepAliveInterval(60);
-            connOpts.setAutomaticReconnect(true);
-            connOpts.setHttpsHostnameVerificationEnabled(false);
+        MqttConnectOptions connOpts = new MqttConnectOptions();
+        connOpts.setUserName(username);
+        connOpts.setPassword(password.toCharArray());
+        connOpts.setCleanSession(true);
+        connOpts.setConnectionTimeout(30);
+        connOpts.setKeepAliveInterval(60);
+        connOpts.setAutomaticReconnect(true);
+        connOpts.setHttpsHostnameVerificationEnabled(false);
 
-            // 1. 先连接
+        // 1. 先连接（连接失败只记录警告，不阻止应用启动）
+        try {
             mqttClient.connect(connOpts);
             logger.info("成功连接到华为云IoT MQTT服务器");
-
-            // 2. 后订阅 (单独 try-catch，订阅失败不影响项目启动)
-            try {
-                mqttClient.subscribe(subscribeTopic, 0, mqttMessageListener); // 修改点4：变量名从 topic 改为 subscribeTopic
-                logger.info("已订阅主题: {}", subscribeTopic);
-            } catch (MqttException e) {
-                logger.error("订阅Topic失败，请检查Topic配置: topic={}", subscribeTopic, e);
-                logger.warn("项目将继续启动，但MQTT消息监听暂不可用。");
-            }
-
-            return mqttClient;
-
         } catch (MqttException e) {
-            logger.error("MQTT客户端初始化失败: {}", e.getMessage(), e);
-            throw new RuntimeException("MQTT客户端初始化失败", e);
+            logger.warn("MQTT连接失败（将在后台自动重连），应用正常启动。原因: {}", e.getMessage());
+            return mqttClient;
+        }
+
+        // 2. 后订阅 (单独 try-catch，订阅失败不影响项目启动)
+        try {
+            mqttClient.subscribe(subscribeTopic, 0, mqttMessageListener);
+            logger.info("已订阅主题: {}", subscribeTopic);
+        } catch (MqttException e) {
+            logger.error("订阅Topic失败，请检查Topic配置: topic={}", subscribeTopic, e);
+            logger.warn("项目将继续启动，但MQTT消息监听暂不可用。");
+        }
+
+        return mqttClient;
+    }
+
+    private void validateRequiredSettings() {
+        if (!StringUtils.hasText(mqttHostUrl)) {
+            throw new IllegalStateException("启用MQTT时必须配置 huawei.iot.mqtt.hostUrl");
+        }
+        if (!StringUtils.hasText(username)) {
+            throw new IllegalStateException("启用MQTT时必须配置 huawei.iot.mqtt.username");
+        }
+        if (!StringUtils.hasText(password)) {
+            throw new IllegalStateException("启用MQTT时必须配置 huawei.iot.mqtt.password");
+        }
+        if (!StringUtils.hasText(clientId)) {
+            throw new IllegalStateException("启用MQTT时必须配置 huawei.iot.mqtt.clientId");
+        }
+        if (!StringUtils.hasText(subscribeTopic)) {
+            throw new IllegalStateException("启用MQTT时必须配置 huawei.iot.mqtt.subscribeTopic");
         }
     }
 
     @PreDestroy
     public void destroy() {
-        if (mqttClient != null && mqttClient.isConnected()) {
-            try {
+        try {
+            if (mqttClient != null && mqttClient.isConnected()) {
                 mqttClient.disconnect();
                 mqttClient.close();
                 logger.info("MQTT客户端已断开连接");
-            } catch (MqttException e) {
-                logger.error("断开MQTT连接时出错: {}", e.getMessage(), e);
             }
+        } catch (MqttException e) {
+            logger.error("断开MQTT连接时出错: {}", e.getMessage(), e);
         }
     }
 }

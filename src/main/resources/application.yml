@@ -6,6 +6,12 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.elasticsearch.ReactiveElasticsearchRepositoriesAutoConfiguration
   profiles:
     active: dev
   datasource:
@@ -30,18 +36,20 @@ spring:
 huawei:
   iot:
     mqtt:
-      hostUrl: eb4a5937ac.st1.iotda-device.cn-north-4.myhuaweicloud.com
-      port: 8883
-      username: 69e60e4b7f2e6c302f68f4b6_test
-      password: ee3e583b84b06bed959a8a34799a695017448e8a033c43096f15fb50d191cd15
-      clientId: 69e60e4b7f2e6c302f68f4b6_test_0_0_2026042116
-      subscribeTopic: $oc/devices/69e60e4b7f2e6c302f68f4b6_test/sys/messages/down
-      reportTopic: $oc/devices/69e60e4b7f2e6c302f68f4b6_test/sys/properties/report
+      enabled: false
+      hostUrl: ${HUAWEI_IOT_MQTT_HOST:}
+      port: ${HUAWEI_IOT_MQTT_PORT:8883}
+      username: ${HUAWEI_IOT_MQTT_USERNAME:}
+      password: ${HUAWEI_IOT_MQTT_PASSWORD:}
+      clientId: ${HUAWEI_IOT_MQTT_CLIENT_ID:}
+      subscribeTopic: ${HUAWEI_IOT_MQTT_SUBSCRIBE_TOPIC:}
+      reportTopic: ${HUAWEI_IOT_MQTT_REPORT_TOPIC:}
     amqp:
-      url: amqps://eb4a5937ac.st1.iotda-app.cn-north-4.myhuaweicloud.com:5671
-      accessKey: IDs5vBY9
-      accessCode: 0oQGHasuaWzdmuXr00ol0HsQYyeJdgr9
-      queueName: cart_device_data_queue
+      enabled: false
+      url: ${HUAWEI_IOT_AMQP_URL:}
+      accessKey: ${HUAWEI_IOT_AMQP_ACCESS_KEY:}
+      accessCode: ${HUAWEI_IOT_AMQP_ACCESS_CODE:}
+      queueName: ${HUAWEI_IOT_AMQP_QUEUE:}
 
 # MyBatis-Plus
 mybatis-plus:
@@ -87,7 +95,7 @@ logging:
 
 file:
   upload:
-    image-path: .\static\images
+    image-path: ./uploads/images
 
 device:
   fixed:

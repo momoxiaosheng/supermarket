@@ -19,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * 定位接口控制器
@@ -101,9 +102,9 @@ public class AppLocationController {
     @Operation(summary = "获取位置历史", description = "查询用户的历史定位轨迹")
     public Result<Object> getLocationHistory(@Valid AppLocationHistoryQuery query) {
         log.debug("查询用户位置历史: userId={}, mapId={}, limit={}", query.getUserId(), query.getMapId(), query.getLimit());
-        // 这里可以调用UserLocationService的扩展方法获取历史记录
-        // 暂时抛出业务异常提示待实现
-        throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "位置历史查询功能待实现");
+        List<UserLocation> history = userLocationService.getUserLocationHistory(
+                query.getUserId(), query.getMapId(), query.getLimit());
+        return Result.success(history);
     }
 
     /**
